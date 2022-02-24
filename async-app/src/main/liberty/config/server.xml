@@ -1,0 +1,62 @@
+<server description="asyncAppServer">
+
+	<featureManager>
+		<feature>jakartaee-9.1</feature>
+		<feature>localConnector-1.0</feature>
+	</featureManager>
+
+	<variable name="defaultHostName" value="localhost" />
+
+	<!-- Define an Administrator and non-Administrator -->
+	<basicRegistry id="basic">
+		<user name="admin" password="admin" />
+	</basicRegistry>
+
+	<!-- Assign 'admin' to Administrator -->
+	<administrator-role>
+		<user>admin</user>
+	</administrator-role>
+
+	<keyStore id="defaultKeyStore" password="{xor}bW5sa2pp" />
+
+	<httpEndpoint host="*" httpPort="9080" httpsPort="9443" id="defaultHttpEndpoint" />
+
+	<applicationManager autoExpand="true" />
+
+	<applicationMonitor updateTrigger="mbean" />
+
+	<resourceAdapter id="artemis" location="${wlp.user.dir}shared/lib/artemis.rar">
+		<properties.artemis ConnectionParameters="host=localhost,port=61616" />
+	</resourceAdapter>
+	
+	<!--
+	<messagingEngine />
+<jmsConnectionFactory jndiName="jms/asyncAppConnectionFactory" > <connectionManager agedTimeout="60m" connectionTimeout="30s" maxIdleTime="30m" 
+		maxPoolSize="10" reapTime="3m" /> <properties.artemis useJndi="true" BrokerURL="tcp://localhost:61616?type=XA_CF" /> </jmsConnectionFactory> -->
+
+	<jmsConnectionFactory id="asyncAppConnectionFactory" jndiName="jms/asyncAppConnectionFactory">
+		<properties.artemis />
+	</jmsConnectionFactory>
+
+	<jmsActivationSpec id="async-app/QueueMessageConsumer">
+		<properties.artemis useJndi="true" destination="jms/asyncAppQueue" destinationType="jakarta.jms.Queue" />
+	</jmsActivationSpec>
+
+	<jmsActivationSpec id="async-app/TopicMessageConsumer">
+		<properties.artemis clientId="eeClientFlorian" useJndi="true" destination="jms/asyncAppTopic"
+			destinationType="jakarta.jms.Topic" subscriptionDurability="Durable" subscriptionName="eeSubscriptionFlorian" />
+	</jmsActivationSpec>
+
+	<jmsTopic jndiName="jms/asyncAppTopic">
+		<properties.artemis Address="topic/asyncAppTopic" />
+	</jmsTopic>
+
+	<jmsQueue jndiName="jms/asyncAppQueue">
+		<properties.artemis Address="queue/asyncAppQueue" />
+	</jmsQueue>
+
+	<logging traceSpecification="*=info:org.apache.activemq.artemis.*=all" />
+
+	<webApplication id="async-app" location="async-app.war" name="async-app" />
+
+</server>
